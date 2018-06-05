@@ -62,14 +62,12 @@ def evaluate(X_data, y_data):
     sess = tf.get_default_session()
     for offset in range(0, num_examples, BATCH_SIZE):
         batch_x, batch_y = X_data[offset:offset + BATCH_SIZE], y_data[offset:offset + BATCH_SIZE]
-        accuracy = sess.run(accuracy_operation, feed_dict={x: batch_x, y: batch_y})
+        accuracy, loss = sess.run([accuracy_operation, loss_operation], feed_dict={x: batch_x, y: batch_y})
         total_accuracy += (accuracy * len(batch_x))
-    return total_accuracy / num_examples
+    return total_accuracy / num_examples, loss
 
 
 # TODO: Train and evaluate the feature extraction model.
-accuracy = {'training': [], 'validation': []}
-
 with tf.Session() as sess:
     sess.run(tf.global_variables_initializer())
     num_examples = len(X_train)
@@ -87,12 +85,10 @@ with tf.Session() as sess:
             sess.run(training_operation, feed_dict={x: batch_x, y: batch_y})
 
         print("Evaluating...".format(i + 1))
-        training_accuracy = evaluate(X_train, y_train)
-        validation_accuracy = evaluate(X_valid, y_valid)
-        accuracy["training"].append(training_accuracy)
-        accuracy["validation"].append(validation_accuracy)
-        print("Training Accuracy = {:.3f}".format(training_accuracy))
-        print("Validation Accuracy = {:.3f}".format(validation_accuracy))
+        training_accuracy, training_loss = evaluate(X_train, y_train)
+        validation_accuracy, validation_loss = evaluate(X_valid, y_valid)
+        print("Training accuracy: {:.3f}, loss: {:.3f}".format(training_accuracy, training_loss))
+        print("Validation accuracy: {:.3f}, loss: {:.3f}".format(validation_accuracy, validation_loss))
 
         # Only save the highest accuracy
         if validation_accuracy > highest_accuracy:
